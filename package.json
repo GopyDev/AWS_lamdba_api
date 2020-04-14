@@ -1,0 +1,27 @@
+{
+  "name": "unathiapp",
+  "version": "1.0.0",
+  "description": "unathiapp backend api",
+  "scripts": {
+    "deploy": "sls deploy"
+  },
+  "author": "Anton Zhevchenko",
+  "license": "ISC",
+  "dependencies": {
+    "aws-sdk": "^2.656.0",
+    "body-parser": "^1.19.0",
+    "express": "^4.17.1",
+    "generate-password": "^1.4.2",
+    "jsonwebtoken": "^8.3.0",
+    "moment": "^2.24.0",
+    "mysql": "^2.17.1",
+    "rehive": "^1.22.0",
+    "serverless-http": "^2.3.0"
+  },
+  "devDependencies": {
+    "serverless-offline": "^5.12.1",
+    "serverless-prune-plugin": "^1.4.2",
+    "serverless-pseudo-parameters": "^2.5.0",
+    "serverless-step-functions": "^2.17.4"
+  }
+}

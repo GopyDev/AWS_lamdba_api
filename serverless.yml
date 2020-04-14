@@ -1,0 +1,563 @@
+# Welcome to Serverless!
+#
+# This file is the main config file for your service.
+# It's very minimal at this point and uses default values.
+# You can always add more config options for more control.
+# We've included some commented out config examples here.
+# Just uncomment any of them to get that config option.
+#
+# For full config options, check the docs:
+#    docs.serverless.com
+#
+# Happy Coding!
+
+service: unathiapp
+# app and org for use with dashboard.serverless.com
+app: unathi-app
+org: unathi
+
+# You can pin your service to only deploy with a specific Serverless version
+# Check out our docs for more details
+# frameworkVersion: "=X.X.X"
+
+frameworkVersion: ">=1.1.0 <2.0.0"
+
+provider:
+  name: aws
+  runtime: nodejs10.x
+  stage: dev
+  region: us-east-1
+
+custom:
+  vpc:
+    securityGroupIds:
+      - sg-a582a6e3
+    subnetIds:
+      - subnet-eaec978d
+      - subnet-8ef57bb0
+      - subnet-9b0041b5
+      - subnet-28494362
+      - subnet-02feba5e
+  prune:
+    automatic: true
+    number: 3
+
+# you can overwrite defaults here
+#  stage: dev
+#  region: us-east-1
+
+# you can add statements to the Lambda function's IAM Role here
+#  iamRoleStatements:
+#    - Effect: "Allow"
+#      Action:
+#        - "s3:ListBucket"
+#      Resource: { "Fn::Join" : ["", ["arn:aws:s3:::", { "Ref" : "ServerlessDeploymentBucket" } ] ]  }
+#    - Effect: "Allow"
+#      Action:
+#        - "s3:PutObject"
+#      Resource:
+#        Fn::Join:
+#          - ""
+#          - - "arn:aws:s3:::"
+#            - "Ref" : "ServerlessDeploymentBucket"
+#            - "/*"
+
+# you can define service wide environment variables here
+#  environment:
+#    variable1: value1
+
+# you can add packaging information here
+#package:
+#  include:
+#    - include-me.js
+#    - include-me-dir/**
+#  exclude:
+#    - exclude-me.js
+#    - exclude-me-dir/**
+
+functions:
+  appInVPC:
+    handler: app.submit
+    memorySize: 512
+    description: backend api for Unathi app.
+    vpc: ${self:custom.vpc}
+    events:
+      - http: # this is an API Gateway HTTP event trigger
+          path: /getProducts
+          method: get
+          cors: true
+      - http: # this is an API Gateway HTTP event trigger
+          path: /getBanners
+          method: get
+          cors: true
+      - http: # this is an API Gateway HTTP event trigger
+          path: /getAdBanners
+          method: get
+          cors: true
+      - http: # this is an API Gateway HTTP event trigger
+          path: /favorite
+          method: post
+          cors: true
+      - http: # this is an API Gateway HTTP event trigger
+          path: /getfavoriteList
+          method: get
+          cors: true
+      - http: # this is an API Gateway HTTP event trigger
+          path: /browseAdBanners
+          method: get
+          cors: true
+      - http: # this is an API Gateway HTTP event trigger
+          path: /browseProducts
+          method: get
+          cors: true
+      - http: # this is an API Gateway HTTP event trigger
+          path: /getCharities
+          method: get
+          cors: true
+
+  appNotInVPC:
+    handler: auth.submit
+    memorySize: 512
+    description: backend api for Unathi app.
+    events:
+      - http: # this is an API Gateway HTTP event trigger
+          path: /signup
+          method: post
+          cors: true
+
+      - http: # this is an API Gateway HTTP event trigger
+          path: /signin
+          method: post
+          cors: true
+
+  appStatus:
+    handler: steps.submit # this step controls information leakage outside the app
+    memorySize: 512
+    description: backend api for Unathi app.
+    events:
+      - http: #this is an API Gateway HTTP event trigger
+          path: /create.status
+          method: post
+          action: DescribeExecution
+          cors: true
+
+  appCreateCredit:
+    handler: steps.submit # this step controls information leakage outside the app
+    memorySize: 512
+    description: backend api for Unathi app.
+    events:
+      - http: #this is an API Gateway HTTP event trigger
+          path: /create.credit
+          method: post
+          cors: true
+
+      - http: #this is an API Gateway HTTP event trigger
+          path: /create.transfer
+          method: post
+          cors: true
+
+  appBalanceCheck:
+    handler: step_functions/balance-checker-step-function.submit
+    memorySize: 512
+    description: backend api for Unathi app.
+    vpc: ${self:custom.vpc}
+
+  appGetUserId:
+    handler: step_functions/user-id-step-function.submit
+    memorySize: 512
+    description: backend api for Unathi app.
+    vpc: ${self:custom.vpc}
+
+  appGetPayeeId:
+    handler: step_functions/payee-id-step-function.submit
+    memorySize: 512
+    description: backend api for Unathi app.
+    vpc: ${self:custom.vpc}
+
+  appCancelMerchantCommitTransaction:
+    handler: step_functions/cancel-merchant-commit-transaction-step-function.submit
+    memorySize: 512
+    description: backend api for Unathi app.
+    vpc: ${self:custom.vpc}
+
+  appCancelNonprofitCommitTransaction:
+    handler: step_functions/cancel-nonprofit-commit-transaction-step-function.submit
+    memorySize: 512
+    description: backend api for Unathi app.
+    vpc: ${self:custom.vpc}
+
+  appCancelUserCommitTransaction:
+    handler: step_functions/cancel-user-commit-transaction-step-function.submit
+    memorySize: 512
+    description: backend api for Unathi app.
+    vpc: ${self:custom.vpc}
+
+  appCancelPayeeCommitTransaction:
+    handler: step_functions/cancel-payee-commit-transaction-step-function.submit
+    memorySize: 512
+    description: backend api for Unathi app.
+    vpc: ${self:custom.vpc}
+
+  appPayeeCommitTransaction:
+    handler: step_functions/payee-commit-p2p-transaction-step-function.submit
+    memorySize: 512
+    description: backend api for Unathi app.
+    vpc: ${self:custom.vpc}
+
+  appCancelPayerCommitTransaction:
+    handler: step_functions/cancel-payer-commit-p2p-transaction-step-function.submit
+    memorySize: 512
+    description: backend api for Unathi app.
+    vpc: ${self:custom.vpc}
+
+  appPayerCommitTransaction:
+    handler: step_functions/payer-commit-p2p-transaction-step-function.submit
+    memorySize: 512
+    description: backend api for Unathi app.
+    vpc: ${self:custom.vpc}
+
+  appMerchantCommitTransaction:
+    handler: step_functions/merchant-commit-transaction-step-function.submit
+    memorySize: 512
+    description: backend api for Unathi app.
+    vpc: ${self:custom.vpc}
+
+  appNonprofitCommitTransaction:
+    handler: step_functions/nonprofit-commit-transaction-step-function.submit
+    memorySize: 512
+    description: backend api for Unathi app.
+    vpc: ${self:custom.vpc}
+
+  appUserCommitTransaction:
+    handler: step_functions/user-commit-transaction-step-function.submit
+    memorySize: 512
+    description: backend api for Unathi app.
+    vpc: ${self:custom.vpc}
+
+  appEventLog:
+    handler: step_functions/event-notifications-step-function.submit
+    memorySize: 512
+    description: backend api for Unathi app.
+    vpc: ${self:custom.vpc}
+
+stepFunctions:
+  stateMachines:
+    appCreateCredit:
+      name: appCreateCredit
+      definition:
+        Comment: "Applying the Saga pattern with AWS Lambda and Step Functions"
+        StartAt: ExtractContextDetails
+        States:
+          ExtractContextDetails:
+            Type: Pass
+            Parameters:
+              correlationid.$: $$.Execution.Name
+            ResultPath: $.contextDetails
+            Next: GetUserId
+          GetUserId:
+            Type: Task
+            Resource:
+              Fn::GetAtt: [appGetUserId, Arn]
+            ResultPath: $.userid
+            Next: BalanceCheck
+          BalanceCheck:
+            Type: Task
+            Resource:
+              Fn::GetAtt: [appBalanceCheck, Arn]
+            Catch:
+            - ErrorEquals: ["States.ALL"]
+              ResultPath: $.BalanceCheckError
+              Next: EventLogPlusNotification
+            ResultPath: $.BalanceCheckResult
+            Next: ConfirmationBalance
+          ConfirmationBalance:
+            Type: Choice
+            Choices:
+            - Variable: "$.BalanceCheckResult"
+              StringEquals: "amount authorised"
+              Next: User_Commit
+            Default: EventLogPlusNotification
+          User_Commit:
+            Type: Task
+            Resource:
+              Fn::GetAtt: [appUserCommitTransaction, Arn]
+            Catch:
+            - ErrorEquals: ["States.ALL"]
+              ResultPath: $.UserCommitError
+              Next: EventLogPlusNotification
+            ResultPath: $.UserCommitResult
+            Next: ConfirmationUserCommit
+          ConfirmationUserCommit:
+            Type: Choice
+            Choices:
+            - Variable: "$.UserCommitResult"
+              StringEquals: "authorisation accepted"
+              Next: Merchant_Commit
+            Default: EventLogPlusNotification
+          Merchant_Commit:
+            Type: Task
+            Resource:
+              Fn::GetAtt: [appMerchantCommitTransaction, Arn]
+            Catch:
+            - ErrorEquals: ["States.ALL"]
+              ResultPath: $.MerchantCommitError
+              Next: Cancel_User_Commit
+            ResultPath: $.MerchantCommitResult
+            Next: ConfirmationMerchantCommit
+          ConfirmationMerchantCommit:
+            Type: Choice
+            Choices:
+            - Variable: "$.MerchantCommitResult"
+              StringEquals: "authorisation accepted"
+              Next: Nonprofit_Commit
+            Default: Cancel_User_Commit
+          Nonprofit_Commit:
+            Type: Task
+            Resource:
+              Fn::GetAtt: [appNonprofitCommitTransaction, Arn]
+            Catch:
+            - ErrorEquals: ["States.ALL"]
+              ResultPath: $.NonprofitCommitError
+              Next: Cancel_Merchant_Commit
+            ResultPath: $.NonprofitCommitResult
+            Next: ConfirmationNonprofitCommit
+          ConfirmationNonprofitCommit:
+            Type: Choice
+            Choices:
+            - Variable: "$.NonprofitCommitResult"
+              StringEquals: "authorisation accepted"
+              Next: EventLogPlusNotification
+            Default: Cancel_Merchant_Commit
+          Cancel_User_Commit:
+            Type: Task
+            Resource:
+              Fn::GetAtt: [appCancelUserCommitTransaction, Arn]
+            Catch:
+            - ErrorEquals: ["States.ALL"]
+              ResultPath: $.CancelUserError
+              Next: Cancel_User_Commit
+            ResultPath: $.CancelUserResult
+            Next: ConfirmationCancelUserCommit
+          ConfirmationCancelUserCommit:
+            Type: Choice
+            Choices:
+            - Variable: "$.CancelUserResult"
+              StringEquals: "authorisation declined"
+              Next: Cancel_User_Commit
+            Default: EventLogPlusNotification
+          Cancel_Merchant_Commit:
+            Type: Task
+            Resource:
+              Fn::GetAtt: [appCancelMerchantCommitTransaction, Arn]
+            Catch:
+            - ErrorEquals: ["States.ALL"]
+              ResultPath: $.CancelMerchantError
+              Next: Cancel_Merchant_Commit
+            ResultPath: $.CancelMerchantResult
+            Next: ConfirmationCancelMerchantCommit
+          ConfirmationCancelMerchantCommit:
+            Type: Choice
+            Choices:
+            - Variable: "$.CancelMerchantResult"
+              StringEquals: "authorisation declined"
+              Next: Cancel_Merchant_Commit
+            Default: Cancel_User_Commit
+          EventLogPlusNotification:
+            Type: Task
+            Resource:
+              Fn::GetAtt: [appEventLog, Arn]
+            Catch:
+            - ErrorEquals: ["States.ALL"]
+              ResultPath: $.EventError
+              Next: EventLogPlusNotification
+            ResultPath: $.EventResult
+            Next: Result
+          Result:
+            Type: Choice
+            Choices:
+            - Variable: "$.NonprofitCommitResult"
+              StringEquals: "authorisation accepted"
+              Next: TransactionSuccess
+            Default: TransactionFailed
+          TransactionFailed:
+            Type: Fail
+            Cause: "Transaction Declined"
+            Error: ErrorA
+          TransactionSuccess:
+            Type: Succeed
+            OutputPath: "$.UserCommitResult"
+    appCreateTransfer:
+      name: appCreateTransfer
+      definition:
+        Comment: "Applying the Saga pattern with AWS Lambda and Step Functions"
+        StartAt: ExtractContextDetails
+        States:
+          ExtractContextDetails:
+            Type: Pass
+            Parameters:
+              correlationid.$: $$.Execution.Name
+            ResultPath: $.contextDetails
+            Next: GetUserId
+          GetUserId:
+            Type: Task
+            Resource:
+              Fn::GetAtt: [appGetUserId, Arn]
+            ResultPath: $.userid
+            Next: GetPayeeId
+          GetPayeeId:
+            Type: Task
+            Resource:
+              Fn::GetAtt: [appGetPayeeId, Arn]
+            Catch:
+            - ErrorEquals: ["States.ALL"]
+              ResultPath: $.PayeeCheckError
+              Next: EventLogPlusNotification
+            ResultPath: $.payeeid
+            Next: BalanceCheck
+          BalanceCheck:
+            Type: Task
+            Resource:
+              Fn::GetAtt: [appBalanceCheck, Arn]
+            Catch:
+            - ErrorEquals: ["States.ALL"]
+              ResultPath: $.BalanceCheckError
+              Next: EventLogPlusNotification
+            ResultPath: $.BalanceCheckResult
+            Next: ConfirmationBalance
+          ConfirmationBalance:
+            Type: Choice
+            Choices:
+            - Variable: "$.BalanceCheckResult"
+              StringEquals: "amount authorised"
+              Next: User_Commit
+            Default: EventLogPlusNotification
+          User_Commit:
+            Type: Task
+            Resource:
+              Fn::GetAtt: [appPayerCommitTransaction, Arn]
+            Catch:
+            - ErrorEquals: ["States.ALL"]
+              ResultPath: $.UserCommitError
+              Next: EventLogPlusNotification
+            ResultPath: $.UserCommitResult
+            Next: ConfirmationUserCommit
+          ConfirmationUserCommit:
+            Type: Choice
+            Choices:
+            - Variable: "$.UserCommitResult"
+              StringEquals: "authorisation accepted"
+              Next: Payee_Commit
+            Default: EventLogPlusNotification
+          Payee_Commit:
+            Type: Task
+            Resource:
+              Fn::GetAtt: [appPayeeCommitTransaction, Arn]
+            Catch:
+            - ErrorEquals: ["States.ALL"]
+              ResultPath: $.PayeeCommitError
+              Next: Cancel_User_Commit
+            ResultPath: $.PayeeCommitResult
+            Next: ConfirmationPayeeCommit
+          ConfirmationPayeeCommit:
+            Type: Choice
+            Choices:
+            - Variable: "$.PayeeCommitResult"
+              StringEquals: "authorisation declined"
+              Next: Cancel_User_Commit
+            Default: EventLogPlusNotification
+          Cancel_User_Commit:
+            Type: Task
+            Resource:
+              Fn::GetAtt: [appCancelPayerCommitTransaction, Arn]
+            Catch:
+            - ErrorEquals: ["States.ALL"]
+              ResultPath: $.UserCommitError
+              Next: Cancel_User_Commit
+            ResultPath: $.CancelUserResult
+            Next: ConfirmationCancelCommit
+          ConfirmationCancelCommit:
+            Type: Choice
+            Choices:
+            - Variable: "$.CancelUserResult"
+              StringEquals: "authorisation declined"
+              Next: Cancel_User_Commit
+            Default: EventLogPlusNotification
+          EventLogPlusNotification:
+            Type: Task
+            Resource:
+              Fn::GetAtt: [appEventLog, Arn]
+            Catch:
+            - ErrorEquals: ["States.ALL"]
+              ResultPath: $.EventError
+              Next: EventLogPlusNotification
+            ResultPath: $.EventResult
+            Next: Result
+          Result:
+            Type: Choice
+            Choices:
+            - Variable: "$.PayeeCommitResult"
+              StringEquals: "authorisation accepted"
+              Next: TransactionSuccess
+            Default: TransactionFailed
+          TransactionFailed:
+            Type: Fail
+            Cause: "Transaction Declined"
+            Error: ErrorA
+          TransactionSuccess:
+            Type: Succeed
+            OutputPath: "$.UserCommitResult"
+plugins:
+  - serverless-step-functions
+  - serverless-pseudo-parameters
+  - serverless-prune-plugin
+#    The following are a few example events you can configure
+#   NOTE: Please make sure to change your handler code to work with those events
+#    Check the event documentation for details
+#    events:
+#      - http:
+#          path: users/create
+#          method: get
+#      - websocket: $connect
+#      - s3: ${env:BUCKET}
+#      - schedule: rate(10 minutes)
+#      - sns: greeter-topic
+#      - stream: arn:aws:dynamodb:region:XXXXXX:table/foo/stream/1970-01-01T00:00:00.000
+#      - alexaSkill: amzn1.ask.skill.xx-xx-xx-xx
+#      - alexaSmartHome: amzn1.ask.skill.xx-xx-xx-xx
+#      - iot:
+#          sql: "SELECT * FROM 'some_topic'"
+#      - cloudwatchEvent:
+#          event:
+#            source:
+#              - "aws.ec2"
+#            detail-type:
+#              - "EC2 Instance State-change Notification"
+#            detail:
+#              state:
+#                - pending
+#      - cloudwatchLog: '/aws/lambda/hello'
+#      - cognitoUserPool:
+#          pool: MyUserPool
+#          trigger: PreSignUp
+#      - alb:
+#          listenerArn: arn:aws:elasticloadbalancing:us-east-1:XXXXXX:listener/app/my-load-balancer/50dc6c495c0c9188/
+#          priority: 1
+#          conditions:
+#            host: example.com
+#            path: /hello
+
+#    Define function environment variables here
+#    environment:
+#      variable2: value2
+
+# you can add CloudFormation resource templates here
+#resources:
+#  Resources:
+#    NewResource:
+#      Type: AWS::S3::Bucket
+#      Properties:
+#        BucketName: my-new-bucket
+#  Outputs:
+#     NewOutput:
+#       Description: "Description for the output"
+#       Value: "Some output value"
