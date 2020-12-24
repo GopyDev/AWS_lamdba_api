@@ -5,7 +5,7 @@
   "scripts": {
     "deploy": "sls deploy"
   },
-  "author": "Anton Zhevchenko",
+  "author": "",
   "license": "ISC",
   "dependencies": {
     "aws-sdk": "^2.656.0",
